@@ -1,0 +1,828 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Честная оценка — Хакатон</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --green: #00ff88;
+            --green-dim: #00cc6a;
+            --green-glow: rgba(0, 255, 136, 0.15);
+            --bg: #0a0a0a;
+            --card-bg: #111;
+            --card-border: #1a1a1a;
+            --text: #e0e0e0;
+            --text-dim: #666;
+            --font-mono: 'Courier New', monospace;
+            --font-main: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+            body::before {
+                content: '';
+                position: fixed;
+                inset: 0;
+                background-image: linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+                background-size: 40px 40px;
+                pointer-events: none;
+                z-index: 0;
+            }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .role-badge {
+            background: rgba(0,255,136,0.1);
+            border: 1px solid var(--green);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            color: var(--green);
+            font-family: var(--font-mono);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .role-section h2 {
+            font-size: 16px;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+            font-family: var(--font-mono);
+        }
+
+            .role-section h2::before {
+                content: '> ';
+                color: var(--green);
+            }
+
+        .roles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+        }
+
+        .role-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: .25s;
+            text-decoration: none;
+            color: var(--text);
+            position: relative;
+        }
+
+            .role-card:hover {
+                border-color: var(--green);
+                box-shadow: 0 0 30px var(--green-glow);
+                transform: translateY(-4px);
+            }
+
+            .role-card.disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                filter: grayscale(0.3);
+                pointer-events: none;
+            }
+
+            .role-card.selected {
+                border-color: var(--green);
+                background: rgba(0,255,136,0.1);
+                box-shadow: 0 0 20px var(--green-glow);
+                cursor: default;
+            }
+
+                .role-card.selected::after {
+                    content: '✓ ТЕКУЩАЯ РОЛЬ';
+                    position: absolute;
+                    bottom: 10px;
+                    left: 0;
+                    right: 0;
+                    font-size: 9px;
+                    color: var(--green);
+                    font-family: var(--font-mono);
+                    letter-spacing: 1px;
+                }
+
+            .role-card .icon {
+                font-size: 32px;
+                margin-bottom: 10px;
+            }
+
+            .role-card .label {
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+        .hero {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 40px 24px;
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .hero::after {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle at 50% 50%, var(--green-glow), transparent 60%);
+                pointer-events: none;
+            }
+
+            .hero h1 {
+                font-size: 28px;
+                font-weight: 800;
+                color: var(--green);
+                font-family: var(--font-mono);
+                letter-spacing: -1px;
+                position: relative;
+            }
+
+            .hero .subtitle {
+                font-size: 13px;
+                color: var(--text-dim);
+                margin-top: 12px;
+                position: relative;
+            }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 50px;
+        }
+
+        .feature {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px 20px;
+            transition: .25s;
+        }
+
+            .feature:hover {
+                border-color: var(--green);
+            }
+
+            .feature .f-icon {
+                font-size: 26px;
+                margin-bottom: 10px;
+            }
+
+            .feature h3 {
+                font-size: 14px;
+                color: var(--green);
+                margin-bottom: 6px;
+                font-family: var(--font-mono);
+            }
+
+            .feature p {
+                font-size: 12px;
+                color: var(--text-dim);
+                line-height: 1.5;
+            }
+
+        .lock-notice {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-top: 60px;
+            text-align: center;
+            font-size: 12px;
+            color: #ff8888;
+            font-family: var(--font-mono);
+            display: none;
+        }
+
+            .lock-notice.show {
+                display: block;
+                animation: fadeIn 0.3s ease;
+            }
+
+        .info-btn {
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid var(--green);
+            color: var(--green);
+            padding: 6px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: var(--font-mono);
+            transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            backdrop-filter: blur(2px);
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+            .info-btn:hover {
+                background: rgba(0, 255, 136, 0.2);
+                transform: scale(1.02);
+                box-shadow: 0 0 12px rgba(0, 255, 136, 0.25);
+                border-color: #00ffaa;
+            }
+
+            .info-btn:active {
+                transform: scale(0.97);
+            }
+
+        .reset-session-btn {
+            background: rgba(20, 20, 30, 0.9);
+            border: 1px solid #3a3a4a;
+            color: #aaa;
+            padding: 6px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: var(--font-mono);
+            transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            backdrop-filter: blur(2px);
+            letter-spacing: 0.3px;
+        }
+
+            .reset-session-btn:hover {
+                background: rgba(40, 30, 30, 0.95);
+                border-color: #ff6666;
+                color: #ff8888;
+                transform: scale(1.02);
+                box-shadow: 0 0 8px rgba(255, 68, 68, 0.2);
+            }
+
+            .reset-session-btn:active {
+                transform: scale(0.98);
+            }
+
+        .timer-bar {
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--green);
+            padding: 10px 16px;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--green);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .timer-label {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .selected-role-section {
+            margin-top: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .selected-role-card {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.08), rgba(0, 255, 136, 0.02));
+            border: 1px solid var(--green);
+            border-radius: 20px;
+            padding: 16px 24px;
+            display: inline-flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .selected-role-text {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: var(--font-mono);
+        }
+
+        .selected-role-icon {
+            font-size: 24px;
+        }
+
+        .selected-role-label {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .selected-role-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--green);
+            letter-spacing: 1px;
+        }
+
+        .enter-role-btn {
+            background: var(--green);
+            color: #000;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            transition: all 0.2s ease;
+            letter-spacing: 0.5px;
+            min-height: 44px;
+        }
+
+            .enter-role-btn:hover {
+                transform: scale(1.02);
+                box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+            }
+
+            .enter-role-btn:active {
+                transform: scale(0.98);
+            }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-4px);
+            }
+
+            75% {
+                transform: translateX(4px);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .hero h1 {
+                font-size: 24px;
+            }
+
+            .hero {
+                padding: 28px 16px;
+            }
+
+            .selected-role-card {
+                flex-direction: column;
+                text-align: center;
+                gap: 14px;
+                padding: 18px;
+            }
+
+            .roles {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .role-card {
+                padding: 18px 12px;
+            }
+
+                .role-card .icon {
+                    font-size: 28px;
+                }
+
+            .container {
+                padding: 16px 12px 32px;
+            }
+
+            nav {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .nav-buttons {
+                justify-content: center;
+            }
+
+            .role-badge {
+                text-align: center;
+                white-space: normal;
+            }
+
+            .timer-bar {
+                font-size: 14px;
+            }
+        }
+
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .roles {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-bar" id="timerBar">
+        <span class="timer-label">⏱️ ДО КОНЦА ХАКАТОНА:</span>
+        <span id="timerDisplay">--:--:--</span>
+    </div>
+    <div class="container" id="appContainer">
+        <nav>
+            <div class="role-badge" id="roleDisplay">Роль не выбрана</div>
+            <div class="nav-buttons">
+                <button id="infoButton" class="info-btn">ℹ️ ИНФО</button>
+                <button id="resetSessionBtn" class="reset-session-btn">⟳ Сбросить сессию</button>
+            </div>
+        </nav>
+
+        <div class="hero">
+            <h1>&lt;Честная оценка/&gt;</h1>
+            <p class="subtitle">Автоматический подсчёт баллов за секунду. Никаких ошибок. Никакого обмана.</p>
+        </div>
+
+        <div class="role-section">
+            <h2>Выберите свою роль:</h2>
+            <div class="roles">
+                <div class="role-card" data-role="admin"><div class="icon">🛡️</div><div class="label">Администратор</div></div>
+                <div class="role-card" data-role="jury"><div class="icon">⚖️</div><div class="label">Жюри</div></div>
+                <div class="role-card" data-role="expert"><div class="icon">🔍</div><div class="label">Эксперт</div></div>
+                <div class="role-card" data-role="participant"><div class="icon">🏆</div><div class="label">Участник</div></div>
+            </div>
+
+            <div id="selectedRoleContainer" class="selected-role-section" style="display: none;">
+                <div class="selected-role-card">
+                    <div class="selected-role-text">
+                        <span class="selected-role-icon" id="selectedRoleIcon">🛡️</span>
+                        <div>
+                            <div class="selected-role-label">Ваша текущая роль</div>
+                            <div class="selected-role-name" id="selectedRoleName">Администратор</div>
+                        </div>
+                    </div>
+                    <button id="enterRoleBtn" class="enter-role-btn">🚀 Войти в роль →</button>
+                </div>
+            </div>
+
+            <div id="lockNotice" class="lock-notice">⚠️ Чтобы сменить роль, сначала нажмите «Сбросить сессию»</div>
+        </div>
+
+        <div class="features">
+            <div class="feature"><div class="f-icon">⚡</div><h3>Всё автоматически</h3><p>Баллы подсчитываются мгновенно. Не нужно считать вручную — система сделает это за вас.</p></div>
+            <div class="feature"><div class="f-icon">✅</div><h3>Проверяется без ошибок</h3><p>Алгоритм исключает человеческий фактор. Каждый балл точен и обоснован.</p></div>
+            <div class="feature"><div class="f-icon">📊</div><h3>Красивые графики</h3><p>Наглядная визуализация результатов в реальном времени с автообновлением.</p></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        let alertShown = false;
+
+        async function apiRequest(url, method = 'GET', body = null) {
+            try {
+                const options = { method, headers: { 'Content-Type': 'application/json' } };
+                if (body) options.body = JSON.stringify(body);
+                const response = await fetch(API_BASE + url, options);
+                if (!response.ok) throw new Error(`API error: ${response.status}`);
+                if (method !== 'DELETE' && response.status !== 204) return response.json();
+                return null;
+            } catch (error) {
+                console.error(`API request failed: ${url}`, error);
+                return null;
+            }
+        }
+
+        async function getTimerEnd() {
+            const timer = await apiRequest('/api/timer');
+            return timer?.endTime || null;
+        }
+
+        async function setTimerEnd(value) {
+            await apiRequest('/api/timer', 'POST', { endTime: value || '' });
+        }
+
+        async function resetTimer() {
+            await setTimerEnd(null);
+            alertShown = false;
+            updateTimerDisplay();
+        }
+
+        async function checkTimerExpired() {
+            const endTimeStr = await getTimerEnd();
+            if (!endTimeStr) return false;
+            const end = new Date(endTimeStr);
+            const now = new Date();
+            if (end <= now) {
+                if (!alertShown) {
+                    alertShown = true;
+                    alert('⏰ Время закончилось! Хакатон завершён.');
+                    await resetTimer();
+                }
+                return true;
+            }
+            return false;
+        }
+
+        async function updateTimerDisplay() {
+            if (await checkTimerExpired()) {
+                const displaySpan = document.getElementById('timerDisplay');
+                if (displaySpan) displaySpan.textContent = 'Не установлен';
+                return;
+            }
+            const endTimeStr = await getTimerEnd();
+            const displaySpan = document.getElementById('timerDisplay');
+            if (!displaySpan) return;
+            if (!endTimeStr) { displaySpan.textContent = 'Не установлено'; return; }
+            const end = new Date(endTimeStr);
+            const now = new Date();
+            const diff = end - now;
+            if (diff <= 0) {
+                if (!alertShown) {
+                    alertShown = true;
+                    alert('⏰ Время закончилось! Хакатон завершён.');
+                    await resetTimer();
+                }
+                displaySpan.textContent = 'Не установлено';
+                return;
+            }
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (3600000)) / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            displaySpan.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        setInterval(updateTimerDisplay, 1000);
+        updateTimerDisplay();
+
+        const INFO_MESSAGE = "📝 Общая информация о хакатоне:\n\nДата начала хакатона: 17 апреля 2026 года\nМесто проведения: БиоХимТехЦентр ТулГУ\nНомер телефона: +7 (999) 777-88-99\nИнформация для пользователей нашего сайта:\n\n🏆 Добро пожаловать в систему честной оценки хакатона!\n• Администратор: управляет командами и критериями оценки\n• Жюри: выставляет автоматические оценки по заданным критериям\n• Эксперты: общаются с участниками в общем чате\n• Участники: следят за таблицей лидеров и общаются с экспертами\n\nВсе данные хранятся на сервере.\nДля смены роли используйте кнопку «Сбросить сессию».\n\nУдачи на хакатоне! 🚀";
+
+        function redirectToRolePage(role) {
+            if (role === 'admin') window.location.href = 'admin.html';
+            else if (role === 'jury') window.location.href = 'jury.html';
+            else if (role === 'expert') window.location.href = 'expert.html';
+            else if (role === 'participant') window.location.href = 'leaderboard.html';
+        }
+
+        function getRoleIcon(role) {
+            const icons = {
+                'admin': '🛡️',
+                'jury': '⚖️',
+                'expert': '🔍',
+                'participant': '🏆'
+            };
+            return icons[role] || '🎯';
+        }
+
+        function getRoleName(role) {
+            const names = {
+                'admin': 'Администратор',
+                'jury': 'Жюри',
+                'expert': 'Эксперт',
+                'participant': 'Участник'
+            };
+            return names[role] || role;
+        }
+
+        function updateRoleDisplay() {
+            const role = localStorage.getItem('hack_role');
+            const displayElement = document.getElementById('roleDisplay');
+            const selectedContainer = document.getElementById('selectedRoleContainer');
+            const selectedRoleName = document.getElementById('selectedRoleName');
+            const selectedRoleIcon = document.getElementById('selectedRoleIcon');
+
+            if (displayElement) {
+                displayElement.textContent = role ? `🔒 Ваша роль: ${role.toUpperCase()}` : '⚡ Роль не выбрана';
+                if (role) {
+                    displayElement.style.borderColor = 'var(--green)';
+                    displayElement.style.background = 'rgba(0,255,136,0.12)';
+                    if (selectedContainer) {
+                        selectedContainer.style.display = 'flex';
+                        if (selectedRoleName) selectedRoleName.textContent = getRoleName(role);
+                        if (selectedRoleIcon) selectedRoleIcon.textContent = getRoleIcon(role);
+                    }
+                } else {
+                    displayElement.style.borderColor = '#3a3a4a';
+                    displayElement.style.background = 'rgba(100,100,140,0.05)';
+                    if (selectedContainer) selectedContainer.style.display = 'none';
+                }
+            }
+        }
+
+        function setRole(role) {
+            localStorage.setItem('hack_role', role);
+            updateRoleDisplay();
+            updateRoleCardsState();
+            showFloatingHint(`✓ Роль "${getRoleName(role)}" выбрана! Нажмите «Войти в роль» чтобы перейти.`, false);
+        }
+
+        function resetSession() {
+            localStorage.removeItem('hack_role');
+            updateRoleDisplay();
+            updateRoleCardsState();
+            const badge = document.getElementById('roleDisplay');
+            if (badge) {
+                badge.style.transition = 'all 0.2s ease';
+                badge.style.backgroundColor = 'rgba(255, 100, 100, 0.25)';
+                badge.style.borderColor = '#ff8888';
+                badge.style.color = '#ffaaaa';
+                badge.textContent = '✓ Сессия сброшена';
+                setTimeout(() => {
+                    if (badge) {
+                        badge.style.backgroundColor = '';
+                        badge.style.borderColor = '';
+                        badge.style.color = '';
+                        updateRoleDisplay();
+                    }
+                }, 1600);
+            }
+            const notice = document.getElementById('lockNotice');
+            if (notice) notice.classList.remove('show');
+            const resetBtn = document.getElementById('resetSessionBtn');
+            if (resetBtn) {
+                resetBtn.style.transform = 'scale(0.97)';
+                setTimeout(() => { if (resetBtn) resetBtn.style.transform = ''; }, 150);
+            }
+        }
+
+        function updateRoleCardsState() {
+            const currentRole = localStorage.getItem('hack_role');
+            const cards = document.querySelectorAll('.role-card');
+            const notice = document.getElementById('lockNotice');
+            if (currentRole) {
+                cards.forEach(card => {
+                    const role = card.getAttribute('data-role');
+                    card.classList.add('disabled');
+                    if (role === currentRole) card.classList.add('selected');
+                    else card.classList.remove('selected');
+                });
+                if (notice) notice.classList.add('show');
+            } else {
+                cards.forEach(card => card.classList.remove('disabled', 'selected'));
+                if (notice) notice.classList.remove('show');
+            }
+        }
+
+        function showFloatingHint(message, isError = false) {
+            const badge = document.getElementById('roleDisplay');
+            if (!badge) return;
+            const originalText = badge.textContent;
+            const originalBg = badge.style.backgroundColor;
+            const originalBorder = badge.style.borderColor;
+            badge.style.transition = '0.15s';
+            badge.style.backgroundColor = isError ? 'rgba(220, 60, 60, 0.2)' : 'rgba(0, 255, 136, 0.2)';
+            badge.style.borderColor = isError ? '#ff6666' : '#00ff88';
+            badge.style.color = isError ? '#ffaaaa' : '#aaffcc';
+            badge.textContent = message;
+            setTimeout(() => {
+                if (badge) {
+                    badge.style.backgroundColor = originalBg;
+                    badge.style.borderColor = originalBorder;
+                    badge.style.color = '';
+                    updateRoleDisplay();
+                }
+            }, 1500);
+        }
+
+        function showInfo() {
+            alert(INFO_MESSAGE);
+            const infoBtn = document.getElementById('infoButton');
+            if (infoBtn) {
+                infoBtn.style.transform = 'scale(0.96)';
+                infoBtn.style.backgroundColor = 'rgba(0, 255, 136, 0.3)';
+                setTimeout(() => {
+                    if (infoBtn) {
+                        infoBtn.style.transform = '';
+                        infoBtn.style.backgroundColor = '';
+                    }
+                }, 180);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateRoleDisplay();
+            updateRoleCardsState();
+
+            const roleCards = document.querySelectorAll('.role-card');
+            roleCards.forEach(card => {
+                card.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const currentRole = localStorage.getItem('hack_role');
+                    const newRole = card.getAttribute('data-role');
+
+                    if (currentRole && currentRole !== newRole) {
+                        showFloatingHint('❌ Сначала нажмите «Сбросить сессию»!', true);
+                        const resetBtn = document.getElementById('resetSessionBtn');
+                        if (resetBtn) {
+                            resetBtn.style.animation = 'shake 0.5s ease';
+                            resetBtn.style.borderColor = '#ff6666';
+                            resetBtn.style.color = '#ff8888';
+                            setTimeout(() => {
+                                if (resetBtn) {
+                                    resetBtn.style.animation = '';
+                                    resetBtn.style.borderColor = '';
+                                    resetBtn.style.color = '';
+                                }
+                            }, 500);
+                        }
+                        return;
+                    }
+
+                    if (!currentRole) {
+                        setRole(newRole);
+                    } else if (currentRole === newRole) {
+                        showFloatingHint(`✓ У вас уже выбрана роль ${getRoleName(currentRole)}. Нажмите «Войти в роль» ниже.`, false);
+                    }
+                });
+            });
+
+            const resetBtn = document.getElementById('resetSessionBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    resetSession();
+                });
+                resetBtn.style.cursor = 'pointer';
+            }
+
+            const infoBtn = document.getElementById('infoButton');
+            if (infoBtn) {
+                infoBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showInfo();
+                });
+                infoBtn.style.cursor = 'pointer';
+            }
+
+            const enterRoleBtn = document.getElementById('enterRoleBtn');
+            if (enterRoleBtn) {
+                enterRoleBtn.addEventListener('click', () => {
+                    const currentRole = localStorage.getItem('hack_role');
+                    if (currentRole) {
+                        redirectToRolePage(currentRole);
+                    } else {
+                        showFloatingHint('❌ Сначала выберите роль!', true);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

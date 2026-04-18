@@ -1,0 +1,551 @@
+<!-- leaderboard.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Таблица лидеров — Хакатон</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --green: #00ff88;
+            --bg: #0a0a0a;
+            --card-bg: #111;
+            --card-border: #1a1a1a;
+            --text: #e0e0e0;
+            --text-dim: #666;
+            --font-mono: 'Courier New', monospace;
+            --font-main: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-main);
+            min-height: 100vh;
+        }
+
+            body::before {
+                content: '';
+                position: fixed;
+                inset: 0;
+                background-image: linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+                background-size: 40px 40px;
+                pointer-events: none;
+                z-index: 0;
+            }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+            nav a {
+                color: var(--text-dim);
+                text-decoration: none;
+                font-size: 13px;
+                padding: 8px 14px;
+                border: 1px solid var(--card-border);
+                border-radius: 10px;
+                transition: .2s;
+                display: inline-block;
+            }
+
+                nav a:hover, nav a.active {
+                    border-color: var(--green);
+                    color: var(--green);
+                }
+
+            nav .logo {
+                color: var(--green);
+                font-family: var(--font-mono);
+                font-weight: 700;
+                font-size: 15px;
+            }
+
+        h1 {
+            font-family: var(--font-mono);
+            font-size: 22px;
+            color: var(--green);
+            margin-bottom: 24px;
+        }
+
+            h1::before {
+                content: '> ';
+            }
+
+        .podium {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 40px;
+            align-items: end;
+        }
+
+        .podium-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .podium-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+            }
+
+            .podium-card.first {
+                order: 2;
+                padding-bottom: 24px;
+            }
+
+                .podium-card.first::before {
+                    background: #ffd700;
+                    height: 4px;
+                }
+
+            .podium-card.second {
+                order: 1;
+                padding-bottom: 16px;
+            }
+
+                .podium-card.second::before {
+                    background: #c0c0c0;
+                }
+
+            .podium-card.third {
+                order: 3;
+                padding-bottom: 12px;
+            }
+
+                .podium-card.third::before {
+                    background: #cd7f32;
+                }
+
+            .podium-card .medal {
+                font-size: 36px;
+                margin-bottom: 8px;
+            }
+
+            .podium-card .p-name {
+                font-size: 16px;
+                font-weight: 700;
+                margin-bottom: 4px;
+                word-break: break-word;
+            }
+
+            .podium-card .p-score {
+                font-size: 24px;
+                font-weight: 800;
+                color: var(--green);
+                font-family: var(--font-mono);
+            }
+
+            .podium-card .p-label {
+                font-size: 10px;
+                color: var(--text-dim);
+                font-family: var(--font-mono);
+                margin-top: 6px;
+            }
+
+        .table-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+            .table-card h2 {
+                font-size: 16px;
+                color: var(--green);
+                margin-bottom: 16px;
+                font-family: var(--font-mono);
+            }
+
+                .table-card h2::before {
+                    content: '// ';
+                    opacity: .5;
+                }
+
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 400px;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 14px;
+            font-size: 12px;
+            color: var(--text-dim);
+            font-family: var(--font-mono);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        td {
+            padding: 12px 14px;
+            font-size: 14px;
+            border-bottom: 1px solid #151515;
+        }
+
+        tr:hover td {
+            background: rgba(0,255,136,0.03);
+        }
+
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            font-family: var(--font-mono);
+        }
+
+        .rank-1 {
+            background: rgba(255,215,0,0.15);
+            color: #ffd700;
+        }
+
+        .rank-2 {
+            background: rgba(192,192,192,0.15);
+            color: #c0c0c0;
+        }
+
+        .rank-3 {
+            background: rgba(205,127,50,0.15);
+            color: #cd7f32;
+        }
+
+        .rank-other {
+            background: #1a1a1a;
+            color: var(--text-dim);
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+        }
+
+            .chart-card h2 {
+                font-size: 16px;
+                color: var(--green);
+                margin-bottom: 16px;
+                font-family: var(--font-mono);
+            }
+
+                .chart-card h2::before {
+                    content: '// ';
+                    opacity: .5;
+                }
+
+        .chart-wrap {
+            position: relative;
+            height: 300px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-dim);
+            font-family: var(--font-mono);
+        }
+
+        .timer-bar {
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--green);
+            padding: 10px 16px;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--green);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .timer-label {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        @media (max-width: 640px) {
+            .podium {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .podium-card.first {
+                order: 1;
+            }
+
+            .podium-card.second {
+                order: 2;
+            }
+
+            .podium-card.third {
+                order: 3;
+            }
+
+            .podium-card {
+                padding: 16px;
+            }
+
+                .podium-card .medal {
+                    font-size: 32px;
+                }
+
+                .podium-card .p-score {
+                    font-size: 22px;
+                }
+
+            nav {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+                nav div {
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                    gap: 8px;
+                }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .chart-wrap {
+                height: 250px;
+            }
+
+            .timer-bar {
+                font-size: 14px;
+            }
+
+            .table-card, .chart-card {
+                padding: 20px;
+            }
+        }
+
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .podium {
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-bar" id="timerBar">
+        <span class="timer-label">⏱️ ДО КОНЦА ХАКАТОНА:</span>
+        <span id="timerDisplay">--:--:--</span>
+    </div>
+    <div class="container">
+        <nav><span class="logo">&lt;Хакатон/&gt;</span><div><a href="index.html">Главная</a><a href="admin.html">Админ</a><a href="jury.html">Жюри</a><a href="expert.html">Чат</a><a href="leaderboard.html" class="active">Лидеры</a></div></nav>
+        <h1>Таблица лидеров</h1>
+        <div class="podium" id="podium"></div>
+        <div class="table-card"><h2>Все команды</h2><div class="table-wrapper"><div id="fullTable"></div></div></div>
+        <div class="chart-card"><h2>Итоговые баллы (обновляется автоматически)</h2><div class="chart-wrap"><canvas id="scoresChart"></canvas></div></div>
+    </div>
+    <script>
+        const API_BASE = '';
+        let alertShown = false;
+        let chart = null;
+
+        async function apiRequest(url, method = 'GET', body = null) {
+            try {
+                const options = { method, headers: { 'Content-Type': 'application/json' } };
+                if (body) options.body = JSON.stringify(body);
+                const response = await fetch(API_BASE + url, options);
+                if (!response.ok) throw new Error(`API error: ${response.status}`);
+                if (method !== 'DELETE' && response.status !== 204) return response.json();
+                return null;
+            } catch (error) {
+                console.error(`API request failed: ${url}`, error);
+                return null;
+            }
+        }
+
+        async function getTimerEnd() {
+            const timer = await apiRequest('/api/timer');
+            return timer?.endTime || null;
+        }
+
+        async function setTimerEnd(value) {
+            await apiRequest('/api/timer', 'POST', { endTime: value || '' });
+        }
+
+        async function resetTimer() {
+            await setTimerEnd(null);
+            alertShown = false;
+            updateTimerDisplay();
+        }
+
+        async function checkTimerExpired() {
+            const endTimeStr = await getTimerEnd();
+            if (!endTimeStr) return false;
+            const end = new Date(endTimeStr);
+            const now = new Date();
+            if (end <= now) {
+                if (!alertShown) {
+                    alertShown = true;
+                    alert('⏰ Время закончилось! Хакатон завершён.');
+                    await resetTimer();
+                }
+                return true;
+            }
+            return false;
+        }
+
+        async function updateTimerDisplay() {
+            if (await checkTimerExpired()) {
+                const displaySpan = document.getElementById('timerDisplay');
+                if (displaySpan) displaySpan.textContent = 'Не установлен';
+                return;
+            }
+            const endTimeStr = await getTimerEnd();
+            const displaySpan = document.getElementById('timerDisplay');
+            if (!displaySpan) return;
+            if (!endTimeStr) { displaySpan.textContent = 'Не установлено'; return; }
+            const end = new Date(endTimeStr);
+            const now = new Date();
+            const diff = end - now;
+            if (diff <= 0) {
+                if (!alertShown) {
+                    alertShown = true;
+                    alert('⏰ Время закончилось! Хакатон завершён.');
+                    await resetTimer();
+                }
+                displaySpan.textContent = 'Не установлено';
+                return;
+            }
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (3600000)) / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            displaySpan.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        setInterval(updateTimerDisplay, 1000);
+        updateTimerDisplay();
+
+        async function getLeaderboard() { return await apiRequest('/api/leaderboard') || []; }
+
+        async function renderPodium(results) {
+            const podium = document.getElementById('podium');
+            if (results.length === 0) { podium.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">Данных пока нет</div>'; return; }
+            let html = '';
+            const top3 = [{ idx: 0, cls: 'first', medal: '🥇' }, { idx: 1, cls: 'second', medal: '🥈' }, { idx: 2, cls: 'third', medal: '🥉' }];
+            for (let p of top3) {
+                const r = results[p.idx];
+                if (r) html += `<div class="podium-card ${p.cls}"><div class="medal">${p.medal}</div><div class="p-name">${esc(r.name)}</div><div class="p-score">${r.total}</div><div class="p-label">баллов · ${r.juryCount} жюри</div></div>`;
+                else html += `<div class="podium-card ${p.cls}"><div class="medal">${p.medal}</div><div class="p-name">—</div><div class="p-score">0</div><div class="p-label">нет данных</div></div>`;
+            }
+            podium.innerHTML = html;
+        }
+
+        async function renderTable(results) {
+            const wrap = document.getElementById('fullTable');
+            if (!results.length) { wrap.innerHTML = '<div class="empty-state">Нет данных для отображения</div>'; return; }
+            let html = `<table><thead><tr><th>#</th><th>Команда</th><th>Жюри</th><th>Баллы</th></tr></thead><tbody>`;
+            results.forEach((r, i) => { const rank = i + 1; const cls = rank <= 3 ? `rank-${rank}` : 'rank-other'; html += `<tr><td><span class="rank-badge ${cls}">${rank}</span></td><td><strong>${esc(r.name)}</strong></td><td>${r.juryCount}</td><td style="color:var(--green); font-weight:700; font-family:var(--font-mono);">${r.total}</td></tr>`; });
+            html += `</tbody></table>`;
+            wrap.innerHTML = html;
+        }
+
+        async function renderChart(results) {
+            const ctx = document.getElementById('scoresChart').getContext('2d');
+            const labels = results.map(r => r.name.length > 15 ? r.name.slice(0, 12) + '...' : r.name);
+            const data = results.map(r => r.total);
+            if (chart) {
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = data;
+                chart.update('none');
+                return;
+            }
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Баллы',
+                        data: data,
+                        backgroundColor: data.map((_, i) => i === 0 ? 'rgba(255,215,0,0.7)' : i === 1 ? 'rgba(192,192,192,0.6)' : i === 2 ? 'rgba(205,127,50,0.6)' : 'rgba(0,255,136,0.5)'),
+                        borderColor: data.map((_, i) => i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#00ff88'),
+                        borderWidth: 2,
+                        borderRadius: 10,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { backgroundColor: '#111', borderColor: '#00ff88', borderWidth: 1, titleFont: { family: 'Courier New' }, bodyFont: { family: 'Courier New' } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#666', font: { family: 'Courier New', size: 10 }, maxRotation: 45, minRotation: 45 }, grid: { color: 'rgba(255,255,255,0.03)' } },
+                        y: { ticks: { color: '#666', font: { family: 'Courier New', size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        async function refresh() {
+            const results = await getLeaderboard();
+            await renderPodium(results);
+            await renderTable(results);
+            await renderChart(results);
+        }
+
+        refresh();
+        setInterval(refresh, 2000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,655 @@
+<!-- admin.html (исправленный) -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Администратор — Хакатон</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --green: #00ff88;
+            --bg: #0a0a0a;
+            --card-bg: #111;
+            --card-border: #1a1a1a;
+            --text: #e0e0e0;
+            --text-dim: #666;
+            --font-mono: 'Courier New', monospace;
+            --font-main: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-main);
+            min-height: 100vh;
+        }
+
+            body::before {
+                content: '';
+                position: fixed;
+                inset: 0;
+                background-image: linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+                background-size: 40px 40px;
+                pointer-events: none;
+                z-index: 0;
+            }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+            nav a {
+                color: var(--text-dim);
+                text-decoration: none;
+                font-size: 13px;
+                padding: 8px 14px;
+                border: 1px solid var(--card-border);
+                border-radius: 10px;
+                transition: .2s;
+                display: inline-block;
+            }
+
+                nav a:hover, nav a.active {
+                    border-color: var(--green);
+                    color: var(--green);
+                }
+
+            nav .logo {
+                color: var(--green);
+                font-family: var(--font-mono);
+                font-weight: 700;
+                font-size: 15px;
+            }
+
+        h1 {
+            font-family: var(--font-mono);
+            font-size: 22px;
+            color: var(--green);
+            margin-bottom: 24px;
+        }
+
+            h1::before {
+                content: '> ';
+            }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+        }
+
+            .card h2 {
+                font-size: 16px;
+                color: var(--green);
+                margin-bottom: 18px;
+                font-family: var(--font-mono);
+            }
+
+                .card h2::before {
+                    content: '// ';
+                    opacity: .5;
+                }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+            font-family: var(--font-mono);
+        }
+
+        input[type="text"], input[type="number"], input[type="datetime-local"] {
+            width: 100%;
+            padding: 12px 14px;
+            background: #0d0d0d;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 15px;
+            margin-bottom: 12px;
+            outline: none;
+            transition: .2s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 12px rgba(0,255,136,0.15);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: .2s;
+            font-family: var(--font-mono);
+            min-height: 44px;
+        }
+
+        .btn-green {
+            background: var(--green);
+            color: #000;
+        }
+
+            .btn-green:hover {
+                box-shadow: 0 0 20px rgba(0,255,136,0.15);
+            }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--green);
+            color: var(--green);
+        }
+
+            .btn-outline:hover {
+                background: rgba(0,255,136,0.05);
+            }
+
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 12px;
+            min-height: 40px;
+        }
+
+        .members-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+            .members-row input {
+                margin-bottom: 0;
+                flex: 1;
+                min-width: 120px;
+            }
+
+        .add-member-btn {
+            height: 44px;
+            min-width: 44px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 22px;
+        }
+
+        .team-submit {
+            margin-top: 12px;
+            width: 100%;
+        }
+
+        .list-section {
+            margin-top: 24px;
+        }
+
+            .list-section h3 {
+                font-size: 14px;
+                color: var(--text-dim);
+                margin-bottom: 12px;
+                font-family: var(--font-mono);
+            }
+
+                .list-section h3::before {
+                    content: '$ ';
+                    color: var(--green);
+                }
+
+        .team-item, .criterion-item {
+            background: #0d0d0d;
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+            .team-item .name {
+                font-weight: 600;
+                font-size: 15px;
+            }
+
+            .team-item .members {
+                font-size: 12px;
+                color: var(--text-dim);
+                margin-top: 4px;
+            }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ff4444;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            transition: .2s;
+            min-width: 44px;
+            min-height: 44px;
+        }
+
+            .delete-btn:hover {
+                background: rgba(255,68,68,0.1);
+            }
+
+        .criteria-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+            .criteria-row > div {
+                flex: 1;
+                min-width: 100px;
+            }
+
+        .timer-bar {
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--green);
+            padding: 10px 16px;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--green);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .timer-label {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .timer-edit {
+            display: inline-block;
+            background: rgba(0,255,136,0.1);
+            border: 1px solid var(--green);
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: .2s;
+            min-height: 36px;
+        }
+
+            .timer-edit:hover {
+                background: rgba(0,255,136,0.3);
+            }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            left: 30px;
+            background: var(--green);
+            color: #000;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: .3s;
+            z-index: 999;
+            text-align: center;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+            .toast.show {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+        @media (max-width: 640px) {
+            .cards {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            nav {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+                nav div {
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                    gap: 8px;
+                }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .team-item, .criterion-item {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .delete-btn {
+                align-self: center;
+            }
+
+            .criteria-row {
+                flex-direction: column;
+            }
+
+            .timer-bar {
+                font-size: 14px;
+            }
+
+            .toast {
+                left: 16px;
+                right: 16px;
+            }
+        }
+
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-bar" id="timerBar">
+        <span class="timer-label">⏱️ ДО КОНЦА ХАКАТОНА:</span>
+        <span id="timerDisplay">--:--:--</span>
+        <span id="timerEditBtn" class="timer-edit">✎ Установить</span>
+    </div>
+    <div class="container">
+        <nav>
+            <span class="logo">&lt;Хакатон/&gt;</span>
+            <div><a href="index.html">Главная</a><a href="admin.html" class="active">Админ</a><a href="jury.html">Жюри</a><a href="expert.html">Чат</a><a href="leaderboard.html">Лидеры</a></div>
+        </nav>
+        <h1>Панель администратора</h1>
+        <div class="cards">
+            <div class="card">
+                <h2>Добавить команду</h2>
+                <label>Название команды</label><input type="text" id="teamName" placeholder="Введите название...">
+                <label>Участники</label><div id="membersList"><div class="members-row"><input type="text" class="member-input" placeholder="Имя участника"><button class="btn btn-outline btn-sm add-member-btn" onclick="addMemberField()">+</button></div></div>
+                <label>Ссылки</label><input type="text" id="links" placeholder="Введите ссылку на github...">
+                <button class="btn btn-green team-submit" onclick="addTeam()">Добавить команду</button>
+                <div class="list-section" id="teamsListSection" style="display:none;"><h3>Команды</h3><div id="teamsList"></div></div>
+            </div>
+            <div class="card">
+                <h2>Критерии оценки</h2>
+                <label>Название критерия</label><input type="text" id="criterionName" placeholder="Например: Инновационность">
+                <div class="criteria-row"><div><label>Мин. балл</label><input type="number" id="criterionMin" value="0" min="0"></div><div><label>Макс. балл</label><input type="number" id="criterionMax" value="10" min="1"></div></div>
+                <button class="btn btn-green" onclick="addCriterion()">Добавить</button>
+                <div class="list-section" id="criteriaListSection" style="display:none;"><h3>Критерии</h3><div id="criteriaList"></div></div>
+            </div>
+        </div>
+    </div>
+    <div class="toast" id="toast">✓ Операция выполнена</div>
+
+    <script>
+        if (localStorage.getItem('hack_role') !== 'admin') window.location.href = 'index.html';
+
+        const API_BASE = '';
+        let alertShown = false;
+
+        async function apiRequest(url, method = 'GET', body = null) {
+            try {
+                const options = { method, headers: { 'Content-Type': 'application/json' } };
+
+                if (body) options.body = JSON.stringify(body);
+
+                const response = await fetch(API_BASE + url, options);
+
+                if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+                if (method !== 'DELETE' && response.status !== 204) return response.json();
+
+                return null;
+            } catch (error) {
+                console.error(`API request failed: ${url}`, error);
+                return null;
+            }
+        }
+
+        async function getTimerEnd() {
+            const timer = await apiRequest('/api/timer');
+            return timer?.endTime || null;
+        }
+
+        async function setTimerEnd(value) {
+            await apiRequest('/api/timer', 'POST', { endTime: value || '' });
+        }
+
+        async function resetTimer() {
+            await setTimerEnd(null);
+            alertShown = false;
+            updateTimerDisplay();
+        }
+
+        async function checkTimerExpired() {
+            const endTimeStr = await getTimerEnd();
+            if (!endTimeStr) return false;
+            const end = new Date(endTimeStr);
+            const now = new Date();
+            if (end <= now) {
+                if (!alertShown) {
+                    alertShown = true;
+                    alert('⏰ Время закончилось! Хакатон завершён.');
+                    await resetTimer();
+                }
+                return true;
+            }
+            return false;
+        }
+
+        async function updateTimerDisplay() {
+            if (await checkTimerExpired()) {
+                const displaySpan = document.getElementById('timerDisplay');
+                if (displaySpan) displaySpan.textContent = 'Не установлен';
+                return;
+            }
+            const endTimeStr = await getTimerEnd();
+            const displaySpan = document.getElementById('timerDisplay');
+            if (!displaySpan) return;
+            if (!endTimeStr) { displaySpan.textContent = 'Не установлено'; return; }
+            const end = new Date(endTimeStr);
+            const now = new Date();
+            const diff = end - now;
+            if (diff <= 0) {
+                if (!alertShown) {
+                    alertShown = true;
+                    alert('⏰ Время закончилось! Хакатон завершён.');
+                    await resetTimer();
+                }
+                displaySpan.textContent = 'Не установлено';
+                return;
+            }
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (3600000)) / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            displaySpan.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function setupTimerEdit() {
+            const btn = document.getElementById('timerEditBtn');
+            if (!btn) return;
+            btn.addEventListener('click', async () => {
+                const currentEnd = await getTimerEnd();
+                let defaultValue = '';
+                if (currentEnd) { const d = new Date(currentEnd); defaultValue = d.toISOString().slice(0, 16); }
+                else { const defaultDate = new Date(); defaultDate.setHours(defaultDate.getHours() + 24); defaultValue = defaultDate.toISOString().slice(0, 16); }
+                const newValue = prompt('Установите дату и время окончания хакатона (YYYY-MM-DDTHH:MM):', defaultValue);
+                if (newValue && !isNaN(new Date(newValue).getTime())) {
+                    alertShown = false;
+                    await setTimerEnd(new Date(newValue).toISOString());
+                    updateTimerDisplay();
+                    showToast('Таймер обновлён ✓');
+                }
+                else if (newValue) alert('Неверный формат даты');
+            });
+        }
+
+        setInterval(updateTimerDisplay, 1000);
+        updateTimerDisplay();
+        setupTimerEdit();
+
+        async function getTeams() { return await apiRequest('/api/teams') || []; }
+        async function addTeamApi(team) { return await apiRequest('/api/teams', 'POST', team); }
+        async function deleteTeamApi(id) { await apiRequest(`/api/teams/${id}`, 'DELETE'); }
+
+        async function getCriteria() { return await apiRequest('/api/criteria') || []; }
+        async function addCriterionApi(criterion) { return await apiRequest('/api/criteria', 'POST', criterion); }
+        async function deleteCriterionApi(id) { await apiRequest(`/api/criteria/${id}`, 'DELETE'); }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message || '✓ Операция выполнена';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function addMemberField() {
+            const wrap = document.getElementById('membersList');
+            const row = document.createElement('div');
+            row.className = 'members-row';
+            row.innerHTML = `<input type="text" class="member-input" placeholder="Имя участника"><button class="btn btn-outline btn-sm add-member-btn" onclick="this.parentElement.remove()">−</button>`;
+            wrap.appendChild(row);
+        }
+
+        async function addTeam() {
+            const name = document.getElementById('teamName').value.trim();
+            if (!name) return alert('Введите название команды');
+            const members = [];
+            document.querySelectorAll('.member-input').forEach(inp => { const v = inp.value.trim(); if (v) members.push(v); });
+            const teams = await getTeams();
+            if (teams.find(t => t.name.toLowerCase() === name.toLowerCase())) return alert('Команда уже существует');
+            const id = (Math.random() * 1e8).toString();
+            const link = document.getElementById('links').value.trim();
+
+            var regexp = new RegExp("https://github.com");
+            const isURL = regexp.test(link);
+            if (!isURL) return alert("Введите корректный URL");
+            await addTeamApi({ id, name, members, link });
+            document.getElementById('teamName').value = '';
+            document.getElementById('links').value = '';
+            document.getElementById('membersList').innerHTML = `<div class="members-row"><input type="text" class="member-input" placeholder="Имя участника"><button class="btn btn-outline btn-sm add-member-btn" onclick="addMemberField()">+</button></div>`;
+            await renderTeams();
+            showToast('Команда добавлена ✓');
+        }
+
+        async function deleteTeam(id) {
+            if (confirm('Удалить команду? Все оценки будут потеряны.')) {
+                await deleteTeamApi(id);
+                await renderTeams();
+                showToast('Команда удалена');
+            }
+        }
+
+        async function renderTeams() {
+            const teams = await getTeams();
+            const sec = document.getElementById('teamsListSection');
+            const list = document.getElementById('teamsList');
+            if (!teams.length) { sec.style.display = 'none'; return; }
+            sec.style.display = 'block';
+            list.innerHTML = teams.map(t => `<div class="team-item"><div><div class="name">${esc(t.name)}</div><div class="members">${t.members.length ? '👥 ' + t.members.map(esc).join(', ') : 'Без участников'}</div></div><div><a class="link" href="${esc(t.link)}">${esc(t.link)}</a></div><button class="delete-btn" onclick="deleteTeam('${t.id}')">✕</button></div>`).join('');
+        }
+
+        async function addCriterion() {
+            const name = document.getElementById('criterionName').value.trim();
+            const min = parseInt(document.getElementById('criterionMin').value) || 0;
+            const max = parseInt(document.getElementById('criterionMax').value) || 10;
+            const id = (Math.random() * 1e8).toString();
+            if (!name) return alert('Введите название критерия');
+            if (min >= max) return alert('Мин. балл должен быть меньше макс.');
+            const criteria = await getCriteria();
+            if (criteria.find(c => c.name.toLowerCase() === name.toLowerCase())) return alert('Критерий уже существует');
+            await addCriterionApi({ id, name, min, max });
+            document.getElementById('criterionName').value = '';
+            document.getElementById('criterionMin').value = '0';
+            document.getElementById('criterionMax').value = '10';
+            await renderCriteria();
+            showToast('Критерий добавлен ✓');
+        }
+
+        async function deleteCriterion(id) {
+            if (confirm('Удалить критерий? Все связанные оценки будут потеряны.')) {
+                await deleteCriterionApi(id);
+                await renderCriteria();
+                showToast('Критерий удалён');
+            }
+        }
+
+        async function renderCriteria() {
+            const criteria = await getCriteria();
+            const sec = document.getElementById('criteriaListSection');
+            const list = document.getElementById('criteriaList');
+            if (!criteria.length) { sec.style.display = 'none'; return; }
+            sec.style.display = 'block';
+            list.innerHTML = criteria.map(c => `<div class="criterion-item"><div><div class="name">${esc(c.name)}</div><div class="members">Диапазон: ${c.min} — ${c.max} баллов</div></div><button class="delete-btn" onclick="deleteCriterion('${c.id}')">✕</button></div>`).join('');
+        }
+
+        function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        // Make functions global
+        window.addMemberField = addMemberField;
+        window.addTeam = addTeam;
+        window.deleteTeam = deleteTeam;
+        window.addCriterion = addCriterion;
+        window.deleteCriterion = deleteCriterion;
+
+        renderTeams();
+        renderCriteria();
+    </script>
+</body>
+</html>
