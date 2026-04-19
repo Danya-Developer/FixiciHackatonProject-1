@@ -1,4 +1,3 @@
-<!-- jury.html (полностью исправленный) -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -232,10 +231,10 @@
             }
 
             .score-row .s-score {
-                font-size: 22px;
+                font-size: 18px;
                 font-weight: 700;
                 color: var(--green);
-                min-width: 50px;
+                min-width: 100px;
                 text-align: right;
                 font-family: var(--font-mono);
             }
@@ -396,7 +395,7 @@
                 <div id="aiStatus" class="ai-loading" style="display:none;">🤖 Анализирую работу команды<span>...</span></div>
                 <div id="criteriaScores"></div>
                 <div style="margin-top:18px; display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;">
-                    <div style="font-family:var(--font-mono); font-size:18px;">Итого: <span id="totalScore" style="color:var(--green); font-size:24px; font-weight:700;">0</span></div>
+                    <div style="font-family:var(--font-mono); font-size:18px;">Итого: <span id="totalScore" style="color:var(--green); font-size:24px; font-weight:700;">0.00</span></div>
                     <button class="btn btn-green" id="autoScoreBtn">🤖 Запустить авто-оценку</button>
                 </div>
             </div>
@@ -536,13 +535,28 @@
                 return;
             }
 
+            // Проверка суммы весов
+            const totalWeight = criteria.reduce((sum, c) => sum + (c.weight || 100), 0);
+            if (Math.abs(totalWeight - 100) > 0.01) {
+                alert(`⚠️ Внимание! Сумма весов критериев = ${totalWeight}% (должна быть 100%). Оценки могут быть некорректными.`);
+            }
+
             console.log('Показываем оценку для команды:', team.name);
             area.style.display = 'block';
             document.getElementById('scoringTeamName').textContent = team.name;
             document.getElementById('autoScoreBtn').disabled = false;
             document.getElementById('aiStatus').style.display = 'none';
-            document.getElementById('criteriaScores').innerHTML = criteria.map(c => `<div class="score-row"><div class="s-name">${esc(c.name)}</div><div class="s-range">${c.min}–${c.max}</div><div class="s-score" id="display_${c.id}">—</div></div>`).join('');
-            document.getElementById('totalScore').textContent = '0';
+
+            // Показываем критерии с их весами
+            document.getElementById('criteriaScores').innerHTML = criteria.map(c => `
+                    <div class="score-row">
+                        <div class="s-name">${esc(c.name)}</div>
+                        <div class="s-range">${c.min}–${c.max} баллов (вес: ${c.weight || 100}%)</div>
+                        <div class="s-score" id="display_${c.id}">—</div>
+                    </div>
+                `).join('');
+
+            document.getElementById('totalScore').textContent = '0.00';
         }
 
         async function runAutoScore() {
@@ -553,6 +567,14 @@
             const criteria = await getCriteria();
             if (!criteria.length) return alert('Нет критериев оценки. Обратитесь к администратору.');
 
+            // Проверка суммы весов
+            const totalWeight = criteria.reduce((sum, c) => sum + (c.weight || 100), 0);
+            if (Math.abs(totalWeight - 100) > 0.01) {
+                if (!confirm(`⚠️ Сумма весов критериев = ${totalWeight}% (должна быть 100%). Продолжить?`)) {
+                    return;
+                }
+            }
+
             const btn = document.getElementById('autoScoreBtn');
             const status = document.getElementById('aiStatus');
             btn.disabled = true;
@@ -560,41 +582,50 @@
             document.getElementById('criteriaScores').style.opacity = '0.5';
 
             setTimeout(async () => {
-                let total = 0;
+                let totalWeightedScore = 0;
                 const scoresToSave = [];
 
-                criteria.forEach(c => {
+                for (const c of criteria) {
+                    // Генерируем случайную оценку в диапазоне [min, max]
                     const range = c.max - c.min;
                     const bias = 0.65 + Math.random() * 0.25;
-                    let val = Math.floor(c.min + (range * bias));
-                    val = Math.max(c.min, Math.min(c.max, val));
-                    document.getElementById('display_' + c.id).textContent = val;
-                    total += val;
+                    let rawScore = Math.floor(c.min + (range * bias));
+                    rawScore = Math.max(c.min, Math.min(c.max, rawScore));
+
+                    // Вычисляем взвешенный балл (сырая оценка * вес в процентах / 100)
+                    const weightPercent = c.weight || 100;
+                    const weightedScore = rawScore * (weightPercent / 100.0);
+                    totalWeightedScore += weightedScore;
+
+                    // Отображаем сырую оценку и взвешенную
+                    document.getElementById('display_' + c.id).innerHTML = `${rawScore} → ${weightedScore.toFixed(2)}`;
+
                     scoresToSave.push({
                         teamId: selectedTeamId,
                         juryName: juryName,
                         criterionId: c.id,
-                        score: val,
-                        total: total
+                        score: rawScore,
+                        total: totalWeightedScore
                     });
-                });
+                }
 
-                document.getElementById('totalScore').textContent = total;
+                // Округляем итоговую сумму до 2 знаков
+                const finalTotal = Math.round(totalWeightedScore * 100) / 100;
+                document.getElementById('totalScore').textContent = finalTotal.toFixed(2);
 
-                // Update total for all items
-                scoresToSave.forEach(s => s.total = total);
+                // Обновляем total для всех записей
+                scoresToSave.forEach(s => s.total = finalTotal);
 
-                // Get existing scores and remove old ones from this jury for this team
+                // Получаем существующие оценки и удаляем старые от этого жюри для этой команды
                 let existingScores = await getScores();
                 existingScores = existingScores.filter(s => !(s.teamId === selectedTeamId && s.juryName === juryName));
                 const allScores = [...existingScores, ...scoresToSave];
                 await saveScores(allScores);
 
-
                 status.style.display = 'none';
                 document.getElementById('criteriaScores').style.opacity = '1';
                 btn.disabled = false;
-                showToast(`Оценка для команды "${document.getElementById('scoringTeamName').textContent}" сохранена ✓`);
+                showToast(`Оценка для команды "${document.getElementById('scoringTeamName').textContent}" сохранена ✓ (итог: ${finalTotal.toFixed(2)} баллов)`);
             }, 1500);
         }
 
