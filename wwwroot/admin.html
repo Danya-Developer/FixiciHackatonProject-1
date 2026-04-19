@@ -1,4 +1,4 @@
-<!-- admin.html (исправленный) -->
+<!-- admin.html -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -347,6 +347,12 @@
                 opacity: 1;
             }
 
+        .weight-info {
+            font-size: 11px;
+            color: var(--green);
+            margin-bottom: 15px;
+        }
+
         @media (max-width: 640px) {
             .cards {
                 grid-template-columns: 1fr;
@@ -429,9 +435,18 @@
             <div class="card">
                 <h2>Критерии оценки</h2>
                 <label>Название критерия</label><input type="text" id="criterionName" placeholder="Например: Инновационность">
-                <div class="criteria-row"><div><label>Мин. балл</label><input type="number" id="criterionMin" value="0" min="0"></div><div><label>Макс. балл</label><input type="number" id="criterionMax" value="10" min="1"></div></div>
-                <button class="btn btn-green" onclick="addCriterion()">Добавить</button>
-                <div class="list-section" id="criteriaListSection" style="display:none;"><h3>Критерии</h3><div id="criteriaList"></div></div>
+                <div class="criteria-row">
+                    <div><label>Мин. балл</label><input type="number" id="criterionMin" value="0" min="0"></div>
+                    <div><label>Макс. балл</label><input type="number" id="criterionMax" value="10" min="1"></div>
+                    <div><label>Вес критерия (%)</label><input type="number" id="criterionWeight" value="100" min="1" max="100" step="1"></div>
+                </div>
+                <div class="weight-info">⚠️ Сумма весов всех критериев должна быть 100%</div>
+                <button class="btn btn-green" onclick="addCriterion()">Добавить критерий</button>
+                <div class="list-section" id="criteriaListSection" style="display:none;">
+                    <h3>Критерии</h3>
+                    <div id="criteriaList"></div>
+                    <div id="totalWeightWarning" style="color: #ffaa00; font-size: 12px; margin-top: 10px; display: none;"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -446,15 +461,10 @@
         async function apiRequest(url, method = 'GET', body = null) {
             try {
                 const options = { method, headers: { 'Content-Type': 'application/json' } };
-
                 if (body) options.body = JSON.stringify(body);
-
                 const response = await fetch(API_BASE + url, options);
-
                 if (!response.ok) throw new Error(`API error: ${response.status}`);
-
                 if (method !== 'DELETE' && response.status !== 204) return response.json();
-
                 return null;
             } catch (error) {
                 console.error(`API request failed: ${url}`, error);
@@ -609,15 +619,18 @@
             const name = document.getElementById('criterionName').value.trim();
             const min = parseInt(document.getElementById('criterionMin').value) || 0;
             const max = parseInt(document.getElementById('criterionMax').value) || 10;
+            const weight = parseFloat(document.getElementById('criterionWeight').value) || 100;
             const id = (Math.random() * 1e8).toString();
             if (!name) return alert('Введите название критерия');
             if (min >= max) return alert('Мин. балл должен быть меньше макс.');
+            if (weight < 1 || weight > 100) return alert('Вес должен быть от 1 до 100');
             const criteria = await getCriteria();
             if (criteria.find(c => c.name.toLowerCase() === name.toLowerCase())) return alert('Критерий уже существует');
-            await addCriterionApi({ id, name, min, max });
+            await addCriterionApi({ id, name, min, max, weight });
             document.getElementById('criterionName').value = '';
             document.getElementById('criterionMin').value = '0';
             document.getElementById('criterionMax').value = '10';
+            document.getElementById('criterionWeight').value = '100';
             await renderCriteria();
             showToast('Критерий добавлен ✓');
         }
@@ -636,7 +649,24 @@
             const list = document.getElementById('criteriaList');
             if (!criteria.length) { sec.style.display = 'none'; return; }
             sec.style.display = 'block';
-            list.innerHTML = criteria.map(c => `<div class="criterion-item"><div><div class="name">${esc(c.name)}</div><div class="members">Диапазон: ${c.min} — ${c.max} баллов</div></div><button class="delete-btn" onclick="deleteCriterion('${c.id}')">✕</button></div>`).join('');
+
+            // Подсчёт суммы весов
+            const totalWeight = criteria.reduce((sum, c) => sum + (c.weight || 100), 0);
+            const warningDiv = document.getElementById('totalWeightWarning');
+            if (Math.abs(totalWeight - 100) > 0.01) {
+                warningDiv.style.display = 'block';
+                warningDiv.innerHTML = `⚠️ Сумма весов критериев = ${totalWeight}% (должна быть 100%). Оценки могут быть некорректными.`;
+            } else {
+                warningDiv.style.display = 'none';
+            }
+
+            list.innerHTML = criteria.map(c => `<div class="criterion-item">
+                    <div>
+                        <div class="name">${esc(c.name)}</div>
+                        <div class="members">Диапазон: ${c.min} — ${c.max} баллов | Вес: ${c.weight || 100}%</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteCriterion('${c.id}')">✕</button>
+                </div>`).join('');
         }
 
         function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
