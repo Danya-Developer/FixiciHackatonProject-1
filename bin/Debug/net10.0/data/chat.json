@@ -1,0 +1,44 @@
+[
+  {
+    "SenderName": "\u0414\u0430\u043D\u0438\u0438\u043B",
+    "SenderRole": "expert",
+    "Text": "\u0437\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439\u0442\u0435 \u043C\u043E\u0436\u0435\u0442\u0435 \u043C\u043D\u0435 \u043F\u043E\u043C\u043E\u0447\u044C",
+    "Time": "16:18",
+    "Timestamp": 1776518283080
+  },
+  {
+    "SenderName": "\u0410\u043B\u0435\u043A\u0441\u0435\u0439",
+    "SenderRole": "participant",
+    "Text": "\u041A\u043E\u043D\u0435\u0447\u043D\u043E, \u044F \u0432\u0430\u0441 \u0441\u043B\u0443\u0448\u0430\u044E",
+    "Time": "16:18",
+    "Timestamp": 1776518316124
+  },
+  {
+    "SenderName": "\u0414\u0430\u043D\u0438\u0438\u043B",
+    "SenderRole": "expert",
+    "Text": "\u0432\u0443\u0446\u0432\u0446\u0432\u0446",
+    "Time": "17:30",
+    "Timestamp": 1776522621129
+  },
+  {
+    "SenderName": "\u0420\u043E\u043C\u0430",
+    "SenderRole": "participant",
+    "Text": "\u041F\u043E\u043C\u043E\u0433\u0438\u0442\u0435!!!!!!!!!!",
+    "Time": "22:38",
+    "Timestamp": 1776541102100
+  },
+  {
+    "SenderName": "\u0432\u0430\u043F\u0432\u0430\u043F\u0432\u043F\u043A\u043F\u043A\u043F\u043A\u043F",
+    "SenderRole": "participant",
+    "Text": "fsdfsdfsd",
+    "Time": "22:57",
+    "Timestamp": 1776542250995
+  },
+  {
+    "SenderName": "\u0414\u0430\u043D\u0438\u0438\u043B",
+    "SenderRole": "expert",
+    "Text": "\u0421 \u0447\u0435\u043C \u0432\u0430\u043C \u043F\u043E\u043C\u043E\u0447\u044C? \u0418 \u043D\u0435 \u043F\u0438\u0448\u0438\u0442\u0435 \u0431\u0440\u0435\u0434 \u0432 \u0447\u0430\u0442\u0435",
+    "Time": "22:58",
+    "Timestamp": 1776542302075
+  }
+]
