@@ -1,8 +1,14 @@
-// Program.cs (исправленная версия)
+// Program.cs (исправленная версия с весами критериев и поддержкой внешних подключений)
 using System.Text.Json;
 using Microsoft.AspNetCore.Http.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Разрешаем подключения с любых IP в локальной сети
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5156); // HTTP
+});
 
 builder.Services.AddCors(options =>
 {
@@ -178,7 +184,7 @@ app.MapGet("/api/leaderboard", () =>
     var results = teams.Select(t =>
     {
         var teamScores = scores.Where(s => s.TeamId == t.Id);
-        var juryTotals = new Dictionary<string, int>();
+        var juryTotals = new Dictionary<string, double>();
         foreach (var s in teamScores)
         {
             if (!juryTotals.ContainsKey(s.JuryName) || s.Total > juryTotals[s.JuryName])
@@ -214,6 +220,7 @@ public class Criterion
     public string Name { get; set; } = "";
     public int Min { get; set; }
     public int Max { get; set; }
+    public double Weight { get; set; } = 100; // Вес в процентах (по умолчанию 100%)
 }
 
 public class ScoreItem
@@ -222,7 +229,7 @@ public class ScoreItem
     public string JuryName { get; set; } = "";
     public string CriterionId { get; set; } = "";
     public int Score { get; set; }
-    public int Total { get; set; }
+    public double Total { get; set; } // Изменено на double для поддержки дробных значений
 }
 
 public class ChatMessage
@@ -244,6 +251,6 @@ public class LeaderboardEntry
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
     public List<string> Members { get; set; } = new();
-    public int Total { get; set; }
+    public double Total { get; set; } // Изменено на double
     public int JuryCount { get; set; }
 }
