@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Жюри — Хакатон</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { 
+            --green: #00ff88; 
+            --bg: #0a0a0a; 
+            --card-bg: #111; 
+            --card-border: #1a1a1a; 
+            --text: #e0e0e0; 
+            --text-dim: #666; 
+            --font-mono: 'Courier New', monospace; 
+            --font-main: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        body { background: var(--bg); color: var(--text); font-family: var(--font-main); min-height: 100vh; }
+        body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+        .container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 20px 16px 40px; }
+        nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 12px; }
+        nav a { color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 8px 14px; border: 1px solid var(--card-border); border-radius: 10px; transition: .2s; display: inline-block; } 
+        nav a:hover, nav a.active { border-color: var(--green); color: var(--green); } 
+        nav .logo { color: var(--green); font-family: var(--font-mono); font-weight: 700; font-size: 15px; }
+        h1 { font-family: var(--font-mono); font-size: 22px; color: var(--green); margin-bottom: 24px; } h1::before { content: '> '; }
+        label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 5px; font-family: var(--font-mono); }
+        input[type="text"] { width: 100%; padding: 12px 14px; background: #0d0d0d; border: 1px solid var(--card-border); border-radius: 12px; color: var(--text); font-size: 15px; margin-bottom: 12px; outline: none; transition: .2s; -webkit-appearance: none; appearance: none;} 
+        input:focus { border-color: var(--green); }
+        .btn { padding: 12px 24px; border: none; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 600; transition: .2s; font-family: var(--font-mono); min-height: 44px; } 
+        .btn-green { background: var(--green); color: #000; } 
+        .btn-green:hover { box-shadow: 0 0 20px rgba(0,255,136,0.15); } 
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; margin-bottom: 20px; } 
+        .card h2 { font-size: 16px; color: var(--green); margin-bottom: 16px; font-family: var(--font-mono); } 
+        .card h2::before { content: '// '; opacity: .5; }
+        .teams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 14px; }
+        .team-card { background: #0d0d0d; border: 1px solid var(--card-border); border-radius: 14px; padding: 16px; cursor: pointer; transition: .2s; } 
+        .team-card:hover { border-color: var(--green); } 
+        .team-card.selected { border-color: var(--green); background: rgba(0,255,136,0.05); }
+        .team-card .t-name { font-weight: 700; font-size: 15px; margin-bottom: 6px; word-break: break-word; } 
+        .team-card .t-members { font-size: 11px; color: var(--text-dim); }
+        #scoringArea { display: none; margin-top: 20px; }
+        .score-row { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; padding: 12px 16px; background: #0d0d0d; border-radius: 14px; border: 1px solid var(--card-border); flex-wrap: wrap; }
+        .score-row .s-name { flex: 2; font-size: 14px; font-weight: 500; } 
+        .score-row .s-range { font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); flex: 1; } 
+        .score-row .s-score { font-size: 22px; font-weight: 700; color: var(--green); min-width: 50px; text-align: right; font-family: var(--font-mono); }
+        .ai-loading { text-align: center; padding: 20px; font-family: var(--font-mono); color: var(--text-dim); }
+        .ai-loading span { animation: blink 1s infinite; } @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+        .toast { position: fixed; bottom: 30px; right: 30px; left: 30px; background: var(--green); color: #000; padding: 14px 24px; border-radius: 12px; font-weight: 600; font-size: 14px; transform: translateY(100px); opacity: 0; transition: .3s; z-index: 999; text-align: center; } 
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .empty-state { text-align: center; padding: 40px; color: var(--text-dim); font-family: var(--font-mono); }
+        .timer-bar { background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--green); padding: 10px 16px; text-align: center; font-family: var(--font-mono); font-size: 18px; font-weight: 700; letter-spacing: 1px; color: var(--green); position: sticky; top: 0; z-index: 100; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .timer-label { font-size: 11px; color: var(--text-dim); }
+        @media (max-width: 640px) {
+            .teams-grid { grid-template-columns: 1fr; }
+            .score-row { flex-direction: column; text-align: center; gap: 8px; }
+            .score-row .s-score { text-align: center; }
+            .score-row .s-range { text-align: center; }
+            nav { flex-direction: column; align-items: stretch; text-align: center; }
+            nav div { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+            h1 { font-size: 20px; }
+            .timer-bar { font-size: 14px; }
+            .card { padding: 20px; }
+        }
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .teams-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+<div class="timer-bar" id="timerBar">
+    <span class="timer-label">⏱️ ДО КОНЦА ХАКАТОНА:</span>
+    <span id="timerDisplay">--:--:--</span>
+</div>
+<div class="container">
+    <nav><span class="logo">&lt;Хакатон/&gt;</span><div><a href="index.html">Главная</a><a href="admin.html">Админ</a><a href="jury.html" class="active">Жюри</a><a href="expert.html">Чат</a><a href="leaderboard.html">Лидеры</a></div></nav>
+    <h1>Панель жюри</h1>
+    <div class="card"><h2>Ваше имя</h2><input type="text" id="juryName" placeholder="Введите ваше имя жюри..."></div>
+    <div class="card"><h2>Выберите команду для авто-оценки</h2><div id="teamsContainer"></div></div>
+    <div id="scoringArea">
+        <div class="card">
+            <h2>Авто-оценка: <span id="scoringTeamName"></span></h2>
+            <div id="aiStatus" class="ai-loading" style="display:none;">🤖 Анализирую работу команды<span>...</span></div>
+            <div id="criteriaScores"></div>
+            <div style="margin-top:18px; display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;">
+                <div style="font-family:var(--font-mono); font-size:18px;">Итого: <span id="totalScore" style="color:var(--green); font-size:24px; font-weight:700;">0</span></div>
+                <button class="btn btn-green" id="autoScoreBtn" onclick="runAutoScore()">🤖 Запустить авто-оценку</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="toast" id="toast">Оценка сохранена ✓</div>
+<script>
+    if(localStorage.getItem('hack_role') !== 'jury') window.location.href='index.html';
+    
+    const TIMER_KEY = 'hack_timer_end';
+    let alertShown = false;
+    
+    function getTimerEnd() { return localStorage.getItem(TIMER_KEY); }
+    function resetTimer() { localStorage.removeItem(TIMER_KEY); localStorage.setItem('hack_timer_trigger', Date.now().toString()); alertShown = false; }
+    
+    function checkTimerExpired() {
+        const endTimeStr = getTimerEnd();
+        if (!endTimeStr) return false;
+        const end = new Date(endTimeStr);
+        const now = new Date();
+        if (end <= now) { if (!alertShown) { alertShown = true; alert('⏰ Время закончилось! Хакатон завершён.'); resetTimer(); } return true; }
+        return false;
+    }
+    
+    function updateTimerDisplay() {
+        if (checkTimerExpired()) { const displaySpan = document.getElementById('timerDisplay'); if (displaySpan) displaySpan.textContent = 'Не установлен'; return; }
+        const endTimeStr = getTimerEnd();
+        const displaySpan = document.getElementById('timerDisplay');
+        if (!displaySpan) return;
+        if (!endTimeStr) { displaySpan.textContent = 'Не установлено'; return; }
+        const end = new Date(endTimeStr);
+        const now = new Date();
+        const diff = end - now;
+        if (diff <= 0) { if (!alertShown) { alertShown = true; alert('⏰ Время закончилось! Хакатон завершён.'); resetTimer(); } displaySpan.textContent = 'Не установлено'; return; }
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (3600000)) / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        displaySpan.textContent = `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+    }
+    
+    setInterval(updateTimerDisplay, 1000);
+    updateTimerDisplay();
+    window.addEventListener('storage', (e) => { if (e.key === TIMER_KEY || e.key === 'hack_timer_trigger') { alertShown = false; updateTimerDisplay(); } });
+    
+    function getTeams() { return JSON.parse(localStorage.getItem('hack_teams') || '[]'); }
+    function getCriteria() { return JSON.parse(localStorage.getItem('hack_criteria') || '[]'); }
+    function getScores() { return JSON.parse(localStorage.getItem('hack_scores') || '[]'); }
+    function saveScores(s) { localStorage.setItem('hack_scores', JSON.stringify(s)); }
+    let selectedTeamId = null;
+    function renderTeams() { const teams = getTeams(); const container = document.getElementById('teamsContainer'); if (!teams.length) { container.innerHTML = '<div class="empty-state">Команды ещё не добавлены.</div>'; return; } container.innerHTML = `<div class="teams-grid">${teams.map(t => `<div class="team-card ${selectedTeamId === t.id ? 'selected' : ''}" onclick="selectTeam('${t.id}')"><div class="t-name">${esc(t.name)}</div><div class="t-members">${t.members.length ? '👥 ' + t.members.map(esc).join(', ') : '—'}</div></div>`).join('')}</div>`; }
+    function selectTeam(id) { selectedTeamId = id; renderTeams(); showScoring(); }
+    function showScoring() { const team = getTeams().find(t => t.id === selectedTeamId); const criteria = getCriteria(); const area = document.getElementById('scoringArea'); if (!team || !criteria.length) { area.style.display = 'none'; return; } area.style.display = 'block'; document.getElementById('scoringTeamName').textContent = team.name; document.getElementById('autoScoreBtn').disabled = false; document.getElementById('aiStatus').style.display = 'none'; document.getElementById('criteriaScores').innerHTML = criteria.map(c => `<div class="score-row"><div class="s-name">${esc(c.name)}</div><div class="s-range">${c.min}–${c.max}</div><div class="s-score" id="display_${c.id}">—</div></div>`).join(''); document.getElementById('totalScore').textContent = '0'; }
+    function runAutoScore() {
+        const juryName = document.getElementById('juryName').value.trim(); if (!juryName) return alert('Введите ваше имя жюри');
+        if (!selectedTeamId) return alert('Выберите команду');
+        const criteria = getCriteria(); const btn = document.getElementById('autoScoreBtn'); const status = document.getElementById('aiStatus');
+        btn.disabled = true; status.style.display = 'block'; document.getElementById('criteriaScores').style.opacity = '0.5';
+        setTimeout(() => {
+            let total = 0;
+            criteria.forEach(c => {
+                const range = c.max - c.min;
+                const bias = 0.65 + Math.random() * 0.25;
+                let val = Math.floor(c.min + (range * bias));
+                val = Math.max(c.min, Math.min(c.max, val));
+                document.getElementById('display_' + c.id).textContent = val;
+                total += val;
+            });
+            document.getElementById('totalScore').textContent = total;
+            let scores = getScores();
+            scores = scores.filter(s => !(s.teamId === selectedTeamId && s.juryName === juryName));
+            criteria.forEach(c => {
+                const v = parseInt(document.getElementById('display_' + c.id).textContent);
+                scores.push({ teamId: selectedTeamId, juryName, criterionId: c.id, score: v, total });
+            });
+            saveScores(scores);
+            status.style.display = 'none'; document.getElementById('criteriaScores').style.opacity = '1'; btn.disabled = false;
+            showToast();
+        }, 1500);
+    }
+    function showToast() { const t = document.getElementById('toast'); t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    renderTeams();
+</script>
+</body>
+</html>

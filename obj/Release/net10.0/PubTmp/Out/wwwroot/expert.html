@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Чат — Хакатон</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { 
+            --green: #00ff88; 
+            --bg: #0a0a0a; 
+            --card-bg: #111; 
+            --card-border: #1a1a1a; 
+            --text: #e0e0e0; 
+            --text-dim: #666; 
+            --font-mono: 'Courier New', monospace; 
+            --font-main: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        body { background: var(--bg); color: var(--text); font-family: var(--font-main); min-height: 100vh; }
+        body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+        .container { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 20px 16px 40px; }
+        nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 12px; }
+        nav a { color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 8px 14px; border: 1px solid var(--card-border); border-radius: 10px; transition: .2s; display: inline-block; } 
+        nav a:hover, nav a.active { border-color: var(--green); color: var(--green); } 
+        nav .logo { color: var(--green); font-family: var(--font-mono); font-weight: 700; font-size: 15px; }
+        h1 { font-family: var(--font-mono); font-size: 22px; color: var(--green); margin-bottom: 24px; } h1::before { content: '> '; }
+        input[type="text"], textarea { width: 100%; padding: 12px 14px; background: #0d0d0d; border: 1px solid var(--card-border); border-radius: 12px; color: var(--text); font-size: 15px; margin-bottom: 12px; outline: none; transition: .2s; font-family: var(--font-main); -webkit-appearance: none; appearance: none;} 
+        input:focus, textarea:focus { border-color: var(--green); }
+        textarea { resize: vertical; min-height: 44px; max-height: 120px; }
+        .btn { padding: 12px 24px; border: none; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 600; transition: .2s; font-family: var(--font-mono); min-height: 44px; } 
+        .btn-green { background: var(--green); color: #000; } 
+        .btn-green:hover { box-shadow: 0 0 20px rgba(0,255,136,0.15); }
+        .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; margin-bottom: 20px; } 
+        .card h2 { font-size: 16px; color: var(--green); margin-bottom: 16px; font-family: var(--font-mono); } 
+        .card h2::before { content: '// '; opacity: .5; }
+        .chat-box { max-height: 500px; overflow-y: auto; padding: 10px 0; display: flex; flex-direction: column; gap: 12px; -webkit-overflow-scrolling: touch; }
+        .chat-msg { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.4; position: relative; }
+        .chat-msg .sender { font-size: 11px; margin-bottom: 5px; font-family: var(--font-mono); font-weight: 600; }
+        .msg-in { background: #0d0d0d; border: 1px solid var(--card-border); align-self: flex-start; border-bottom-left-radius: 4px; } 
+        .msg-in .sender { color: #888; }
+        .msg-out { background: rgba(0,255,136,0.1); border: 1px solid var(--green); align-self: flex-end; border-bottom-right-radius: 4px; } 
+        .msg-out .sender { color: var(--green); }
+        .chat-msg .time { font-size: 10px; color: var(--text-dim); margin-top: 6px; text-align: right; }
+        .chat-input-row { display: flex; gap: 10px; margin-top: 14px; align-items: flex-end; } 
+        .chat-input-row textarea { margin: 0; flex: 1; }
+        .empty-chat { text-align: center; padding: 40px; color: var(--text-dim); font-family: var(--font-mono); align-self: center; }
+        .role-badge { display: inline-block; padding: 5px 14px; background: rgba(0,255,136,0.1); border: 1px solid var(--green); border-radius: 30px; font-size: 11px; color: var(--green); font-family: var(--font-mono); margin-bottom: 14px; }
+        .readonly-notice { background: #1a1a1a; border-left: 3px solid #ffaa00; padding: 10px 14px; font-size: 12px; color: #ffaa00; margin-bottom: 10px; border-radius: 0 10px 10px 0; }
+        .timer-bar { background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--green); padding: 10px 16px; text-align: center; font-family: var(--font-mono); font-size: 18px; font-weight: 700; letter-spacing: 1px; color: var(--green); position: sticky; top: 0; z-index: 100; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .timer-label { font-size: 11px; color: var(--text-dim); }
+        @media (max-width: 640px) {
+            .chat-msg { max-width: 90%; }
+            nav { flex-direction: column; align-items: stretch; text-align: center; }
+            nav div { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+            h1 { font-size: 20px; }
+            .timer-bar { font-size: 14px; }
+            .card { padding: 20px; }
+            .chat-box { max-height: 450px; }
+        }
+    </style>
+</head>
+<body>
+<div class="timer-bar" id="timerBar">
+    <span class="timer-label">⏱️ ДО КОНЦА ХАКАТОНА:</span>
+    <span id="timerDisplay">--:--:--</span>
+</div>
+<div class="container">
+    <nav>
+        <span class="logo">&lt;Хакатон/&gt;</span>
+        <div>
+            <a href="index.html">Главная</a>
+            <a href="admin.html">Админ</a>
+            <a href="jury.html">Жюри</a>
+            <a href="expert.html" class="active">Чат</a>
+            <a href="leaderboard.html">Лидеры</a>
+        </div>
+    </nav>
+    <h1>Общий чат</h1>
+    <div class="card"><h2>Ваше имя</h2><input type="text" id="userName" placeholder="Введите ваше имя..."></div>
+    <div class="card">
+        <h2>Чат поддержки и общения</h2>
+        <div id="roleInfo" class="role-badge" style="display:none;"></div>
+        <div id="readonlyNotice" class="readonly-notice" style="display:none;">ℹ️ Эксперт может отправлять сообщения участникам и читать их ответы.</div>
+        <div class="chat-box" id="chatBox"></div>
+        <div class="chat-input-row" id="inputRow">
+            <textarea id="chatMessage" rows="1" placeholder="Напишите сообщение..."></textarea>
+            <button class="btn btn-green" onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+</div>
+<script>
+    const currentRole = localStorage.getItem('hack_role');
+    if(currentRole !== 'expert' && currentRole !== 'participant') { window.location.href = 'index.html'; }
+    
+    const API_BASE = '';
+    const TIMER_KEY = 'hack_timer_end';
+    let alertShown = false;
+    
+    async function apiRequest(url, method = 'GET', body = null) {
+        const options = { method, headers: { 'Content-Type': 'application/json' } };
+        if (body) options.body = JSON.stringify(body);
+        const response = await fetch(API_BASE + url, options);
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
+        if (method !== 'DELETE') return response.json();
+        return null;
+    }
+    
+    async function getTimerEnd() {
+        try {
+            const timer = await apiRequest('/api/timer');
+            return timer.endTime;
+        } catch { return null; }
+    }
+    
+    async function setTimerEnd(value) {
+        await apiRequest('/api/timer', 'POST', { endTime: value || '' });
+        if (value) localStorage.setItem(TIMER_KEY, value);
+        else localStorage.removeItem(TIMER_KEY);
+    }
+    
+    async function resetTimer() { 
+        await setTimerEnd(null);
+        alertShown = false;
+        updateTimerDisplay();
+    }
+    
+    async function checkTimerExpired() {
+        const endTimeStr = await getTimerEnd();
+        if (!endTimeStr) return false;
+        const end = new Date(endTimeStr);
+        const now = new Date();
+        if (end <= now) {
+            if (!alertShown) { alertShown = true; alert('⏰ Время закончилось! Хакатон завершён.'); resetTimer(); }
+            return true;
+        }
+        return false;
+    }
+    
+    async function updateTimerDisplay() {
+        if (await checkTimerExpired()) { const displaySpan = document.getElementById('timerDisplay'); if (displaySpan) displaySpan.textContent = 'Не установлен'; return; }
+        const endTimeStr = await getTimerEnd();
+        const displaySpan = document.getElementById('timerDisplay');
+        if (!displaySpan) return;
+        if (!endTimeStr) { displaySpan.textContent = 'Не установлено'; return; }
+        const end = new Date(endTimeStr);
+        const now = new Date();
+        const diff = end - now;
+        if (diff <= 0) { if (!alertShown) { alertShown = true; alert('⏰ Время закончилось! Хакатон завершён.'); resetTimer(); } displaySpan.textContent = 'Не установлено'; return; }
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (3600000)) / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        displaySpan.textContent = `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+    }
+    
+    setInterval(updateTimerDisplay, 1000);
+    updateTimerDisplay();
+
+    const CHAT_KEY = 'hack_chat';
+    const USER_NAME_KEY = currentRole === 'expert' ? 'hack_expert_name' : 'hack_participant_name';
+    
+    async function getChat() { try { return await apiRequest('/api/chat'); } catch { return []; } }
+    async function sendMessageApi(msg) { return await apiRequest('/api/chat', 'POST', msg); }
+    
+    function loadSavedName() { const saved = localStorage.getItem(USER_NAME_KEY); const input = document.getElementById('userName'); if (saved && input) input.value = saved; }
+    function saveNameOnInput() { const input = document.getElementById('userName'); if (!input) return; input.addEventListener('input', function() { const name = this.value.trim(); localStorage.setItem(USER_NAME_KEY, name); }); }
+    
+    let lastCount = 0;
+    let chatMessages = [];
+    
+    async function renderChat() {
+        chatMessages = await getChat();
+        const box = document.getElementById('chatBox');
+        const roleInfo = document.getElementById('roleInfo');
+        const readonlyNotice = document.getElementById('readonlyNotice');
+        const inputRow = document.getElementById('inputRow');
+        
+        if (roleInfo) {
+            roleInfo.style.display = 'inline-block';
+            if (currentRole === 'expert') { roleInfo.textContent = '🟢 Режим: Эксперт — вы можете писать участникам'; if(readonlyNotice) readonlyNotice.style.display = 'block'; if(inputRow) inputRow.style.display = 'flex'; }
+            else if (currentRole === 'participant') { roleInfo.textContent = '🟢 Режим: Участник — вы можете писать экспертам'; if(readonlyNotice) readonlyNotice.style.display = 'none'; if(inputRow) inputRow.style.display = 'flex'; }
+        }
+        
+        if (!chatMessages.length) { if(box) box.innerHTML = '<div class="empty-chat">Сообщений пока нет. Напишите первое сообщение!</div>'; lastCount = 0; return; }
+        
+        const myName = document.getElementById('userName')?.value.trim() || '';
+        const myRole = currentRole;
+        const sortedMsgs = [...chatMessages].sort((a,b) => (a.timestamp || 0) - (b.timestamp || 0));
+        
+        if(box) box.innerHTML = sortedMsgs.map(m => {
+            let isMine = false;
+            if (myName && m.senderName === myName && m.senderRole === myRole) isMine = true;
+            if (!isMine && !m.senderName && m.senderRole === myRole) isMine = true;
+            if (!isMine && myRole === 'expert' && m.senderRole === 'expert' && myName && m.senderName === myName) isMine = true;
+            if (!isMine && myRole === 'participant' && m.senderRole === 'participant' && myName && m.senderName === myName) isMine = true;
+            
+            let displayName = '';
+            if (isMine) displayName = 'Вы';
+            else { if (m.senderName) displayName = m.senderRole === 'expert' ? `📌 Эксперт (${m.senderName})` : `👤 Участник (${m.senderName})`;
+            else displayName = m.senderRole === 'expert' ? '📌 Эксперт' : '👤 Участник'; }
+            
+            const msgClass = isMine ? 'msg-out' : 'msg-in';
+            return `<div class="chat-msg ${msgClass}"><div class="sender">${esc(displayName)}</div><div>${esc(m.text)}</div><div class="time">${m.time}</div></div>`;
+        }).join('');
+        
+        if (sortedMsgs.length !== lastCount && box) { box.scrollTop = box.scrollHeight; lastCount = sortedMsgs.length; }
+    }
+    
+    async function sendMessage() {
+        const nameInput = document.getElementById('userName');
+        const senderName = nameInput ? nameInput.value.trim() : '';
+        if (!senderName) { alert('Пожалуйста, введите ваше имя перед отправкой сообщения'); if(nameInput) nameInput.focus(); return; }
+        const textarea = document.getElementById('chatMessage');
+        const text = textarea ? textarea.value.trim() : '';
+        if (!text) return;
+        localStorage.setItem(USER_NAME_KEY, senderName);
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+        await sendMessageApi({ senderName: senderName, senderRole: currentRole, text: text, time: timeStr, timestamp: now.getTime() });
+        if(textarea) textarea.value = '';
+        await renderChat();
+        setTimeout(() => { const box = document.getElementById('chatBox'); if (box) box.scrollTop = box.scrollHeight; }, 50);
+    }
+    
+    function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    
+    function setupEnterSend() { const textarea = document.getElementById('chatMessage'); if (textarea) { textarea.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }); } }
+    
+    loadSavedName();
+    saveNameOnInput();
+    setupEnterSend();
+    renderChat();
+    setInterval(renderChat, 1500);
+</script>
+</body>
+</html>

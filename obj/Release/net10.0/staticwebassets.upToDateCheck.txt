@@ -1,0 +1,10 @@
+wwwroot\admin.html
+wwwroot\expert.html
+wwwroot\index.html
+wwwroot\jury.html
+wwwroot\leaderboard.html
+C:\Файлы Visual Studio\HackathonServer\HackathonServer\wwwroot\admin.html
+C:\Файлы Visual Studio\HackathonServer\HackathonServer\wwwroot\expert.html
+C:\Файлы Visual Studio\HackathonServer\HackathonServer\wwwroot\index.html
+C:\Файлы Visual Studio\HackathonServer\HackathonServer\wwwroot\jury.html
+C:\Файлы Visual Studio\HackathonServer\HackathonServer\wwwroot\leaderboard.html

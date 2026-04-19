@@ -1,0 +1,7 @@
+C:\Файлы Visual Studio\HackathonServer\HackathonServer\obj\Release\net10.0\PubTmp\Out\HackathonServer.exe
+C:\Файлы Visual Studio\HackathonServer\HackathonServer\obj\Release\net10.0\PubTmp\Out\appsettings.Development.json
+C:\Файлы Visual Studio\HackathonServer\HackathonServer\obj\Release\net10.0\PubTmp\Out\appsettings.json
+C:\Файлы Visual Studio\HackathonServer\HackathonServer\obj\Release\net10.0\PubTmp\Out\HackathonServer.dll
+C:\Файлы Visual Studio\HackathonServer\HackathonServer\obj\Release\net10.0\PubTmp\Out\HackathonServer.deps.json
+C:\Файлы Visual Studio\HackathonServer\HackathonServer\obj\Release\net10.0\PubTmp\Out\HackathonServer.runtimeconfig.json
+C:\Файлы Visual Studio\HackathonServer\HackathonServer\obj\Release\net10.0\PubTmp\Out\HackathonServer.pdb
